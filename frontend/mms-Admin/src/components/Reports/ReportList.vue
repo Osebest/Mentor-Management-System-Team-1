@@ -1,11 +1,11 @@
 <template>
-  <div class="w-5/12">
+  <div class="w-[300px]">
     <div
-      class="py-2 px-2 flex justify-between rounded-md bg-green-400 text-white"
+      class="py-1 px-1 flex justify-between items-center rounded-md bg-green-400 text-white"
     >
       <router-link to="/admin/reports/programs">
         <button
-          class="w-full p-2 text-xl px-4 rounded-md"
+          class="w-full py-2 text-base 2xl:text-xl font-normal px-4 rounded-md"
           :class="{ active: isActive('/admin/reports/programs') }"
         >
           Program Reports
@@ -14,17 +14,17 @@
 
       <router-link to="/admin/reports/tasks">
         <button
-          class="w-full text-xl flex p-2 px-4 rounded-md"
+          class="w-full py-2 text-base 2xl:text-xl font-normal px-4 rounded-md"
           :class="{ active: isActive('/admin/reports/tasks') }"
         >
           Tasks Reports
         </button>
       </router-link>
     </div>
-    <div class="mt-8 overflow-y-scroll pr-4 h-[70vh] fancy-scroll pb-2">
-      <section class="flex justify-between mb-3">
+    <div class="mt-5 overflow-y-scroll pr-2 h-[70vh] fancy-scroll pb-2">
+      <section class="flex justify-between items-center mb-3">
         <button class="flex items-center gap-2">
-          <span>All Reports</span>
+          <span class="text-sm 2xl:text-base">All Reports</span>
           <IconCaret />
         </button>
         <IconSearch color="#058B94" />
@@ -38,19 +38,20 @@
         :id="report.id"
         :key="report.id"
       >
-        <IconReportAlt color="#058B94" :size="40" />
+        <IconReportAlt color="#058B94" :size="30" />
       </ReportCard>
 
       <ReportCard
         path="/admin/reports/tasks/"
         v-show="isActive('/admin/reports/tasks')"
-        v-for="report in taskReports"
-        :title="report.title"
-        :author="report.author"
+        v-for="report in reportStore.reports.data"
+        :title="report.details"
+        :author="report.created_by"
+        :date="convertedDate(report.created_at)"
         :id="report.id"
         :key="report.id"
       >
-        <IconTask color="#058B94" size="40" />
+        <IconTask color="#058B94" size="35" />
       </ReportCard>
     </div>
   </div>
@@ -63,46 +64,15 @@ import { IconSearch, IconCaret } from "../Icons";
 import ReportCard from "@/components/Reports/ReportCard.vue";
 import IconReportAlt from "../Icons/IconReportAlt.vue";
 import IconTask from "../Icons/IconTask.vue";
+import { useReportStore } from "@/store/reports";
 
 const isActive = ref<Boolean>(false);
 const route = useRoute();
+const reportStore = useReportStore();
 
 watch(() => {
   isActive.value = (path: string) => route.path.startsWith(path);
 });
-
-const taskReports = [
-  {
-    title: "Authorize and find a melee",
-    author: "Alison Davis",
-    id: 3535,
-  },
-  {
-    title: "Zinc is not the real business",
-    author: "Peter Clarke",
-    id: 5214,
-  },
-  {
-    title: "Declan rice shipment coming through",
-    author: "Octomas Indovalin",
-    id: 3414,
-  },
-  {
-    title: "There are new elements to account for",
-    author: "George Calvary",
-    id: 4145,
-  },
-  {
-    title: "Set the new standards for newbies",
-    author: "Barack Obama",
-    id: 32141,
-  },
-  {
-    title: "Purify the outlets",
-    author: "Shan Oliseh Mali Anothonia",
-    id: 941,
-  },
-];
 
 const reports = [
   {
@@ -126,13 +96,19 @@ const reports = [
     id: 4,
   },
 ];
+
+const  convertedDate = (originalDate: any) => {
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+
+    return new Date(originalDate).toLocaleDateString('en-US', options);
+}
 </script>
 
 <style scoped lang="scss">
 .active {
   color: #058b94;
   background-color: #fff;
-  font-weight: bold;
+  font-weight: 600;
   transition: all 200ms ease-in;
 }
 </style>
