@@ -4,8 +4,11 @@
 // Path: app\Helpers\Helper.php
 
 use App\Models\User;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Intervention\Image\Image;
+use Intervention\Image\ImageManager;
 
 /**
  * Call a string helper method.
@@ -30,9 +33,7 @@ function strHelper(string $methodname, ...$args)
  */
 function callStatic(string $className, string $methodname, ...$args)
 {
-    $class = new $className();
-
-    return $class->__callStatic($methodname, $args);
+    return $className::$methodname(...$args);
 }
 
 /**
@@ -44,7 +45,7 @@ function callStatic(string $className, string $methodname, ...$args)
  */
 function callStaticMethod(object $class, string $methodname, ...$args)
 {
-    return $class->__callStatic($methodname, $args);
+    return callStatic(get_class($class), $methodname, ...$args);
 }
 
 /**
@@ -91,7 +92,7 @@ function addUserSession($request)
  */
 function linkifyUrl(string $text): string
 {
-    // URLs starting with http://, https://, or ftp://
+    // URLs starting with http://, https://, or ftp://.
     $matches = [];
 
     $pattern = '/(https?:\/\/[^\s]+)/';
@@ -227,7 +228,7 @@ function slugify(string $str): string
  */
 function getFileType(string $mimeType): string
 {
-    // Pregematch for image, video, audio, or file
+    // Preg match for image, video, audio, or file.
     preg_match('/(image|video|audio|file|doc)/', strtolower($mimeType), $matches);
 
     if (count($matches) > 0) {
@@ -288,4 +289,61 @@ function containsMentions(string $str, User $user): bool
     $pattern = '/(^|\s)(@here|@everyone|@'.$user_name.'|@'.$user_email.')(\s|$)/';
 
     return preg_match($pattern, $str);
+}
+
+/**
+ * Remove @ symbol from the beginning of a string.
+ */
+function removeAtSymbol(string $str): string
+{
+    return preg_replace('/^@/', '', $str);
+}
+
+/**
+ * Generate certificates.
+ */
+function generateCertificate(string $name)
+{
+    try {
+        $filesystem = app(Filesystem::class);
+        $sampleCertPath = public_path('certs/cert.jpg');
+
+        if (! $filesystem->exists($sampleCertPath)) {
+            // Sample certificate image does not exist
+            return false;
+        }
+
+        $imageManager = new ImageManager(['driver' => 'gd']);
+        $image = $imageManager->make($sampleCertPath);
+
+        $imageName = $name.'-cert';
+        $destinationPath = public_path('certs/');
+
+        if (! $filesystem->isDirectory($destinationPath)) {
+            // Create the destination directory if it doesn't exist
+            $filesystem->makeDirectory($destinationPath);
+        }
+
+        $fontPath = public_path('fonts/2.ttf');
+        if (! $filesystem->exists($fontPath)) {
+            // Font file does not exist
+            return false;
+        }
+
+        $image->text($name, 500, 320, function ($font) use ($fontPath) {
+            $font->file($fontPath);
+            $font->size(40);
+            $font->color('#001a1a');
+            $font->align('center');
+            $font->valign('bottom');
+        });
+
+        $imagePath = $destinationPath.$imageName.'.png';
+        $image->save($imagePath);
+
+        return $imagePath;
+    } catch (\Intervention\Image\Exception\NotSupportedException|\Intervention\Image\Exception\NotWritableException $e) {
+        // Unable to generate or save the certificate
+        return false;
+    }
 }

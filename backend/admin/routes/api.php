@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Auth endpoints
+
 Route::prefix('auth')->group(function () {
     Route::post('register', [App\Http\Controllers\AuthController::class, 'register']);
     Route::post('login', [App\Http\Controllers\AuthController::class, 'login']);
@@ -50,6 +51,7 @@ Route::prefix('auth')->group(function () {
 
 // Version 1
 Route::prefix('v1')->group(function () {
+    Route::post('cert', [App\Http\Controllers\CertificateController::class, 'generateCert']);
     // Country endpoints
     Route::prefix('countries')->group(function () {
         // Returns country list
@@ -197,7 +199,7 @@ Route::prefix('v1')->group(function () {
             Route::post('forward', [App\Http\Controllers\MessageController::class, 'forwardMessage']);
 
             // Broadcast message
-            Route::post('broadcast/{?user_role}', [App\Http\Controllers\MessageController::class, 'broadcastMessage']);
+            Route::post('broadcast', [App\Http\Controllers\MessageController::class, 'broadcastMessage']);
 
             // Mark message as unread
             // Commented out because I'm not sure if this is needed, just good to have incase it is needed. - @ghostscypher
@@ -353,6 +355,49 @@ Route::prefix('v1')->group(function () {
 
             // Delete mentor manager data
             Route::delete('{mentor_manager_id}', [App\Http\Controllers\MentorManagerController::class, 'deleteMentorManager']);
+        });
+
+        // Program endpoints
+        Route::prefix('program')->group(function () {
+            // Get program data
+            Route::get('/', [App\Http\Controllers\ProgramController::class, 'getPrograms']);
+            Route::get('archived', [App\Http\Controllers\ProgramController::class, 'getArchivedPrograms']);
+
+            // Search program
+            Route::get('search/{keyword}', [App\Http\Controllers\ProgramController::class, 'searchPrograms']);
+
+            // Get specific program data
+            Route::get('{program_id}', [App\Http\Controllers\ProgramController::class, 'getProgram']);
+
+            // Update program data
+            Route::post('/', [App\Http\Controllers\ProgramController::class, 'createProgram']);
+            Route::post('restore/{program_id}', [App\Http\Controllers\ProgramController::class, 'restoreProgram']);
+            Route::patch('{program_id}', [App\Http\Controllers\ProgramController::class, 'updateProgram']);
+
+            // Delete program data
+            Route::delete('{program_id}', [App\Http\Controllers\ProgramController::class, 'archiveProgram']);
+
+            // Delete all program data
+            Route::delete('/', [App\Http\Controllers\ProgramController::class, 'archiveAllPrograms']);
+
+            // Program criteria endpoints
+            Route::prefix('criteria')->group(function () {
+                // Get program criteria
+                Route::get('{program_id}', [App\Http\Controllers\ProgramController::class, 'getProgramCriteria']);
+
+                // Get specific program criteria
+                Route::get('{program_id}/{criteria_id}', [App\Http\Controllers\ProgramController::class, 'getSpecificProgramCriteria']);
+
+                // Update program criteria
+                Route::post('{program_id}', [App\Http\Controllers\ProgramController::class, 'createProgramCriteria']);
+                Route::patch('{program_id}/{criteria_id}', [App\Http\Controllers\ProgramController::class, 'updateProgramCriteria']);
+
+                // Delete program criteria
+                Route::delete('{program_id}/{criteria_id}', [App\Http\Controllers\ProgramController::class, 'deleteProgramCriteria']);
+
+                // Delete all program criteria
+                Route::delete('{program_id}', [App\Http\Controllers\ProgramController::class, 'deleteAllProgramCriteria']);
+            });
         });
     });
 });
